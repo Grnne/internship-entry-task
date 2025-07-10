@@ -21,8 +21,16 @@ public class TicTacToeDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>();
-        modelBuilder.Entity<Game>();
-        modelBuilder.Entity<Move>();
+        modelBuilder.Entity<Move>()
+            .HasOne(m => m.Game)
+            .WithMany(g => g.Moves)
+            .HasForeignKey(m => m.GameId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Cell>()
+            .HasOne(c => c.Game)
+            .WithMany(g => g.Cells)
+            .HasForeignKey(c => c.GameId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
