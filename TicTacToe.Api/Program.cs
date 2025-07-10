@@ -1,27 +1,42 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using TicTacToe.Api.Application.Services;
+using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
+using System.Reflection;
 
 namespace TicTacToe.Api;
-
-// TODO think bout: 
-// maybe add repos and uow, migrations, signalR, middleware for logging, validation\exception handling,
-// authorization with current user service, mode for hot seat\multiplayer or drop all this stuff cus overhead
-// still signalR exp maybe useful for study, so added dummies(anyway, need to do signalR implementation)
+// TODO readme, docker, testing, Persistence crash-safe, переменные среды, logic
+// TODO think bout: response wrapper? maybe add repos and uow, migrations,
+// signalR(multiplayer and hot seat modes), middleware for logging,
+// validation\exception handling, authorization with current user service,
+// or drop all this stuff cus overhead. Added some dummies\blank stuff
+// signalR exp maybe useful for study(anyway, need to do signalR implementation)
 public class Program
 {
-    public static void Main(string[] args) 
+    public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddControllers();
+
         builder.Services.AddDbContext<TicTacToeDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
                               ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+
+        builder.Services.AddSwaggerGen(options =>
+        {
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            options.IncludeXmlComments(xmlPath);
+        });
+
         builder.Services.AddHealthChecks();
-        builder.Services.AddSignalR();
+
+        builder.Services.AddScoped<IGameService, GameService>();
+        builder.Services.AddScoped<IMoveService, MoveService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
 
         var app = builder.Build();
 
@@ -35,7 +50,6 @@ public class Program
 
         if (app.Environment.IsDevelopment())
         {
-            
             app.UseSwagger();
             app.UseSwaggerUI();
         }
@@ -45,6 +59,7 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
         app.MapHealthChecks("/health");
 
         app.Run();

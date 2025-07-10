@@ -4,11 +4,11 @@ using TicTacToe.Api.Data;
 
 namespace TicTacToe.Api.Application.Services;
 
-public class UserService : IUserService
+public class AuthService : IAuthService
 {
     private readonly TicTacToeDbContext _context;
 
-    public UserService(TicTacToeDbContext context)
+    public AuthService(TicTacToeDbContext context)
     {
         _context = context;
     }

@@ -2,7 +2,7 @@
 
 namespace TicTacToe.Api.Application.Services.Interfaces;
 
-public interface IUserService
+public interface IAuthService
 {
     Task<UserDto> CreateAsync(UserDto createDto);
     Task<UserDto> GetByIdAsync(int id);

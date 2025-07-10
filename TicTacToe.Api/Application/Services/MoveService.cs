@@ -13,17 +13,12 @@ public class MoveService : IMoveService
         _context = context;
     }
 
-    public Task<MoveDto> CreateAsync(MoveDto createDto)
+    public Task<GameStateDto?> CreateAsync(CreateMoveDto dto)
     {
         throw new NotImplementedException();
     }
 
-    public Task<MoveDto> GetByIdAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task DeleteAsync(long gameId)
+    public Task<MoveDto?> GetByIdAsync(int id)
     {
         throw new NotImplementedException();
     }

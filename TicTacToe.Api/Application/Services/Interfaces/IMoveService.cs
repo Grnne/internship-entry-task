@@ -4,7 +4,6 @@ namespace TicTacToe.Api.Application.Services.Interfaces;
 
 public interface IMoveService
 {
-    Task<MoveDto> CreateAsync(MoveDto createDto);
-    Task<MoveDto> GetByIdAsync(int id);
-    Task DeleteAsync(long gameId);
+    Task<GameStateDto?> CreateAsync(CreateMoveDto dto);
+    Task<MoveDto?> GetByIdAsync(int id);
 }

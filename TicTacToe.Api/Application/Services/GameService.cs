@@ -1,6 +1,9 @@
-﻿using TicTacToe.Api.Application.Models.Dto;
+﻿using Microsoft.EntityFrameworkCore;
+using TicTacToe.Api.Application.Models.Dto;
 using TicTacToe.Api.Application.Services.Interfaces;
+using TicTacToe.Api.Application.Mappers;
 using TicTacToe.Api.Data;
+using TicTacToe.Api.Data.Entities;
 
 namespace TicTacToe.Api.Application.Services;
 
@@ -13,23 +16,56 @@ public class GameService : IGameService
         _context = context;
     }
 
-    public Task<GameDto> CreateAsync(GameDto createDto)
+    public async Task<GameDto?> CreateAsync(CreateGameDto dto)
     {
-        throw new NotImplementedException();
+        var entity = GameMapper.ToEntity(dto);
+        InitCells(entity);
+        await _context.AddAsync(entity);
+        await _context.SaveChangesAsync();
+
+        return GameMapper.ToDto(entity);
     }
 
-    public Task<GameDto> GetByIdAsync(int gameId)
+    public async Task<GameDto?> GetByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        var entity = await _context.Games
+            .Include(g => g.Cells)
+            .FirstOrDefaultAsync(g => g.Id == id);
+
+        return entity == null ? null : GameMapper.ToDto(entity);
     }
 
-    public Task UpdateAsync(int gameId, GameDto updateDto)
+    public async Task<bool> DeleteAsync(int id)
     {
-        throw new NotImplementedException();
+        var existing = await _context.Games.FindAsync(id);
+
+        if (existing == null)
+        {
+            return false;
+        }
+
+        _context.Games.Remove(existing);
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    public Task DeleteAsync(int gameId)
+    private static void InitCells(Game game)
     {
-        throw new NotImplementedException();
+        var cells = new List<Cell>();
+
+        for (var i = 0; i < game.BoardHeight; i++)
+        {
+            for (var j = 0; j < game.BoardWidth; j++)
+            {
+                cells.Add(new Cell
+                {
+                    X = j,
+                    Y = i,
+                    Game = game
+                });
+            }
+        }
+
+        game.Cells = cells;
     }
 }
