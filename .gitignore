@@ -18,3 +18,4 @@ bld/
 *.log
 *.vspscc
 *.vssscc
+/TicTacToe.Tests/TestResults
