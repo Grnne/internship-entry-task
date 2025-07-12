@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TicTacToe.Api.Application.Mappers;
+using TicTacToe.Api.Application.Models;
 using TicTacToe.Api.Application.Models.Dto;
 using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
@@ -18,11 +19,14 @@ public class MoveService : IMoveService
         _gameService = gameService;
     }
 
-    public async Task<GameStateDto?> CreateAsync(CreateMoveDto dto)
+    public async Task<ResponseWrapper<GameStateDto>> CreateAsync(CreateMoveDto dto)
     {
-        var moveEntity = MoveMapper.ToEntity(dto);
+        if (dto == null)
+        {
+            return new ResponseWrapper<GameStateDto>(ErrorViews.InvalidMoveDto);
+        }
 
-        // Maybe remove transaction if concurrency check with Etag adding will be before service
+        var moveEntity = MoveMapper.ToEntity(dto);
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
@@ -33,7 +37,7 @@ public class MoveService : IMoveService
 
             if (gameEntity == null)
             {
-                return null;
+                return new ResponseWrapper<GameStateDto>(ErrorViews.GameNotFound);
             }
 
             var currentTurn = moveEntity.PlayerId == gameEntity.PlayerXId
@@ -41,30 +45,34 @@ public class MoveService : IMoveService
 
             if (currentTurn != gameEntity.CurrentTurn)
             {
-                return null;
+                return new ResponseWrapper<GameStateDto>(ErrorViews.NotPlayersTurn);
             }
-
-            moveEntity.CurrentTurn = currentTurn;
 
             if (gameEntity.GameState != GameState.InProgress)
             {
-                return null;
+                return new ResponseWrapper<GameStateDto>(ErrorViews.GameNotInProgress);
             }
 
-            var destinationCell = gameEntity.Cells.Find(c =>
-                c.X == moveEntity.X && c.Y == moveEntity.Y);
+            var destinationCell = gameEntity.Cells.Find(c => c.X == moveEntity.X && c.Y == moveEntity.Y);
 
             if (destinationCell == null)
             {
-                return null;
+                return new ResponseWrapper<GameStateDto>(ErrorViews.InvalidCell);
             }
 
             if (destinationCell.CellState != CellState.Empty)
             {
-                return null;
+                return new ResponseWrapper<GameStateDto>(ErrorViews.CellOccupied);
             }
 
-            destinationCell.CellState = currentTurn == PlayerTurn.PlayerX ? CellState.X : CellState.O;
+            if (gameEntity.FilledCellsCount % 3 == 0 && gameEntity.FilledCellsCount > 0 && Random.Shared.Next(0, 10) == 1)
+            {
+                destinationCell.CellState = currentTurn == PlayerTurn.PlayerX ? CellState.O : CellState.X;
+            }
+            else
+            {
+                destinationCell.CellState = currentTurn == PlayerTurn.PlayerX ? CellState.X : CellState.O;
+            }
 
             await _context.Moves.AddAsync(moveEntity);
             await _context.SaveChangesAsync();
@@ -81,5 +89,4 @@ public class MoveService : IMoveService
             throw;
         }
     }
-
 }

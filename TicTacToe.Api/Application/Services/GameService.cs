@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TicTacToe.Api.Application.Mappers;
+using TicTacToe.Api.Application.Models;
 using TicTacToe.Api.Application.Models.Dto;
 using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
@@ -17,62 +18,74 @@ public class GameService : IGameService
         _context = context;
     }
 
-    public async Task<GameDto?> CreateAsync(CreateGameDto dto)
+    public async Task<ResponseWrapper<GameDto>> CreateAsync(CreateGameDto dto)
     {
+        if (dto == null)
+        {
+            return new ResponseWrapper<GameDto>(ErrorViews.InvalidMoveDto);
+        }
+
         var entity = GameMapper.CreateGameDtoToEntity(dto);
         InitCells(entity);
         await _context.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        return GameMapper.ToGameDto(entity);
+        return new ResponseWrapper<GameDto>(GameMapper.ToGameDto(entity));
     }
 
-    public async Task<GameDto?> GetByIdAsync(int id)
+    public async Task<ResponseWrapper<GameDto>> GetByIdAsync(int id)
     {
         var entity = await _context.Games
             .Include(g => g.Cells)
             .FirstOrDefaultAsync(g => g.Id == id);
 
-        return entity == null ? null : GameMapper.ToGameDto(entity);
+        if (entity == null)
+        {
+            return new ResponseWrapper<GameDto>(ErrorViews.GameNotFound);
+        }
+
+        return new ResponseWrapper<GameDto>(GameMapper.ToGameDto(entity));
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<ResponseWrapper<bool>> DeleteAsync(int id)
     {
         var existing = await _context.Games.FindAsync(id);
 
         if (existing == null)
         {
-            return false;
+            return new ResponseWrapper<bool>(ErrorViews.GameNotFound);
         }
 
         _context.Games.Remove(existing);
         await _context.SaveChangesAsync();
-        return true;
+
+        return new ResponseWrapper<bool>(true);
     }
 
-    public async Task<GameStateDto?> UpdateAsync(Game game, Move move)
+    public async Task<ResponseWrapper<GameStateDto>> UpdateAsync(Game game, Move move)
     {
-        //TODO errors
-        
         if (move.X < 0 || move.X >= game.BoardWidth || move.Y < 0 || move.Y >= game.BoardHeight)
         {
-            return null;
+            return new ResponseWrapper<GameStateDto>(ErrorViews.InvalidMoveCoordinates);
         }
 
-        var boolGrid = new bool[game.BoardWidth, game.BoardHeight];
-        var cellState = game.CurrentTurn == PlayerTurn.PlayerX ? CellState.X : CellState.O;
+        var byteGrid = new byte[game.BoardWidth, game.BoardHeight];
 
-        foreach (var cell in game.Cells.Where(cell => cell.CellState == cellState))
+        foreach (var cell in game.Cells)
         {
-            boolGrid[cell.X, cell.Y] = true;
+            if (cell.CellState == CellState.X)
+            {
+                byteGrid[cell.X, cell.Y] = 1;
+            }
+            else if (cell.CellState == CellState.O)
+            {
+                byteGrid[cell.X, cell.Y] = 2;
+            }
         }
 
-        if (CheckWinAllDirections(boolGrid, move.X, move.Y, game.WinLength))
-        {
-            game.GameState = game.CurrentTurn == PlayerTurn.PlayerX
-                ? GameState.PlayerXWon : GameState.PlayerOWon;
-        }
-        else
+        game.GameState = CheckWinAllDirections(byteGrid, move.X, move.Y, game.WinLength);
+
+        if (game.GameState == GameState.InProgress)
         {
             game.FilledCellsCount++;
 
@@ -89,7 +102,7 @@ public class GameService : IGameService
 
         await _context.SaveChangesAsync();
 
-        return GameMapper.ToGameStateDto(game);
+        return new ResponseWrapper<GameStateDto>(GameMapper.ToGameStateDto(game));
     }
 
     private static void InitCells(Game game)
@@ -112,10 +125,8 @@ public class GameService : IGameService
         game.Cells = cells;
     }
 
-    //Уродливый, зато универсальный
-    private static bool CheckWinAllDirections(bool[,] boolGrid, int x, int y, int winLength)
+    private static GameState CheckWinAllDirections(byte[,] boolGrid, int x, int y, int winLength)
     {
-        //Making directions, we will add\subtract them from current position
         (int deltaX, int deltaY)[] directions = new (int, int)[]
         {
             (1, 0),
@@ -124,38 +135,82 @@ public class GameService : IGameService
             (1, -1)
         };
 
+        var width = boolGrid.GetLength(0);
+        var height = boolGrid.GetLength(1);
+
         foreach (var (deltaX, deltaY) in directions)
         {
-            var count = 1;
-            var width = boolGrid.GetLength(0);
-            var height = boolGrid.GetLength(1);
+            var countX = 0;
+            var countO = 0;
 
-            var posX = x + deltaX;
-            var posY = y + deltaY;
+            var posX = x;
+            var posY = y;
 
-            //Going to one direction from our starting point
-            while (posX >= 0 && posX < width && posY >= 0 && posY < height && boolGrid[posX, posY])
+            while (posX >= 0 && posX < width && posY >= 0 && posY < height)
             {
-                count++;
+                if (boolGrid[posX, posY] == 1)
+                {
+                    countX++;
+                    countO = 0;
+                }
+                else if (boolGrid[posX, posY] == 2)
+                {
+                    countO++;
+                    countX = 0;
+                }
+                else
+                {
+                    break;
+                }
+
                 posX += deltaX;
                 posY += deltaY;
+            }
+
+            if (boolGrid[x, y] == 1)
+            {
+                countO = 0;
+            }
+            else if (boolGrid[x, y] == 2)
+            {
+                countX = 0;
             }
 
             posX = x - deltaX;
             posY = y - deltaY;
 
-            //Going to other direction from our starting point
-            while (posX >= 0 && posX < width && posY >= 0 && posY < height && boolGrid[posX, posY])
+            while (posX >= 0 && posX < width && posY >= 0 && posY < height)
             {
-                count++;
+                if (boolGrid[posX, posY] == 1)
+                {
+                    countX++;
+                    countO = 0;
+                }
+                else if (boolGrid[posX, posY] == 2)
+                {
+                    countO++;
+                    countX = 0;
+                }
+                else
+                {
+                    break;
+                }
+
                 posX -= deltaX;
                 posY -= deltaY;
             }
 
-            if (count >= winLength)
-                return true;
+            if (countX >= winLength)
+            {
+                return GameState.PlayerXWon;
+            }
+
+            if (countO >= winLength)
+            {
+                return GameState.PlayerOWon;
+            }
         }
 
-        return false;
+        return GameState.InProgress;
     }
 }

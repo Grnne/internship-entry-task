@@ -27,14 +27,21 @@ public class GameController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateGameDto request)
     {
-        var response = await _gameService.CreateAsync(request);
+        var result = await _gameService.CreateAsync(request);
 
-        if (response == null)
+        if (!result.Success)
         {
-            return BadRequest();
+            var error = result.Error;
+            var problemDetails = new ProblemDetails
+            {
+                Title = error?.ErrorCode ?? "InvalidRequest",
+                Detail = error?.Message ?? "Некорректные данные запроса.",
+                Status = error?.StatusCode ?? StatusCodes.Status400BadRequest
+            };
+            return BadRequest(problemDetails);
         }
 
-        return CreatedAtAction(nameof(GetById), new { gameId = response.Id }, response);
+        return CreatedAtAction(nameof(GetById), new { gameId = result.Response?.Id }, result.Response);
     }
 
     /// <summary>
@@ -49,14 +56,21 @@ public class GameController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int gameId)
     {
-        var game = await _gameService.GetByIdAsync(gameId);
+        var result = await _gameService.GetByIdAsync(gameId);
 
-        if (game == null)
+        if (!result.Success)
         {
-            return NotFound();
+            var error = result.Error;
+            var problemDetails = new ProblemDetails
+            {
+                Title = error?.ErrorCode ?? "NotFound",
+                Detail = error?.Message ?? "Игра с указанным идентификатором не найдена.",
+                Status = error?.StatusCode ?? StatusCodes.Status404NotFound
+            };
+            return NotFound(problemDetails);
         }
 
-        return Ok(game);
+        return Ok(result.Response);
     }
 
     /// <summary>
@@ -70,11 +84,18 @@ public class GameController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int gameId)
     {
-        var success = await _gameService.DeleteAsync(gameId);
+        var result = await _gameService.DeleteAsync(gameId);
 
-        if (!success)
+        if (!result.Success)
         {
-            return NotFound();
+            var error = result.Error;
+            var problemDetails = new ProblemDetails
+            {
+                Title = error?.ErrorCode ?? "NotFound",
+                Detail = error?.Message ?? "Игра с указанным идентификатором не найдена.",
+                Status = error?.StatusCode ?? StatusCodes.Status404NotFound
+            };
+            return NotFound(problemDetails);
         }
 
         return NoContent();
