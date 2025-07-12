@@ -6,8 +6,8 @@ using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
 
 namespace TicTacToe.Api;
-// TODO readme, docker, testing, Persistence crash-safe, переменные среды, logic
-// TODO think bout: response wrapper? maybe add repos and uow, migrations, lazy loading
+// TODO readme, docker, testing, validation of wrong users and etc 
+// TODO think bout: maybe add repos and uow, migrations, lazy loading
 // signalR(multiplayer and hot seat modes), middleware for logging,
 // validation\exception handling, authorization with current user service,
 // or drop all this stuff cus overhead. Added some dummies\blank stuff

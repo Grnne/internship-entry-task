@@ -30,7 +30,7 @@ public class GameService : IGameService
         await _context.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        return new ResponseWrapper<GameDto>(GameMapper.ToGameDto(entity));
+        return new ResponseWrapper<GameDto>(GameMapper.ToGameDto(entity), true);
     }
 
     public async Task<ResponseWrapper<GameDto>> GetByIdAsync(int id)
@@ -44,7 +44,7 @@ public class GameService : IGameService
             return new ResponseWrapper<GameDto>(ErrorViews.GameNotFound);
         }
 
-        return new ResponseWrapper<GameDto>(GameMapper.ToGameDto(entity));
+        return new ResponseWrapper<GameDto>(GameMapper.ToGameDto(entity), false);
     }
 
     public async Task<ResponseWrapper<bool>> DeleteAsync(int id)
@@ -59,7 +59,7 @@ public class GameService : IGameService
         _context.Games.Remove(existing);
         await _context.SaveChangesAsync();
 
-        return new ResponseWrapper<bool>(true);
+        return new ResponseWrapper<bool>(true, false);
     }
 
     public async Task<ResponseWrapper<GameStateDto>> UpdateAsync(Game game, Move move)
@@ -102,7 +102,7 @@ public class GameService : IGameService
 
         await _context.SaveChangesAsync();
 
-        return new ResponseWrapper<GameStateDto>(GameMapper.ToGameStateDto(game));
+        return new ResponseWrapper<GameStateDto>(GameMapper.ToGameStateDto(game), false);
     }
 
     private static void InitCells(Game game)

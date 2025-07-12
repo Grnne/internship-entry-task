@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Security.Cryptography;
 using System.Text;
 using TicTacToe.Api.Application.Mappers;
@@ -77,13 +78,13 @@ public class MoveService : IMoveService
                 destinationCell.CellState = currentTurn == PlayerTurn.PlayerX ? CellState.X : CellState.O;
             }
 
-            //TODO better way
+            //TODO better way maybe, or leave it like this
             try
             {
                 await _context.Moves.AddAsync(moveEntity);
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
             {
                 var existingMove = await _context.Moves.FirstOrDefaultAsync(m =>
                     m.GameId == dto.GameId &&
@@ -95,7 +96,7 @@ public class MoveService : IMoveService
                     : new ResponseWrapper<GameStateDto>(ErrorViews.DatabaseError);
             }
             
-            //await Task.Delay(5000); // Tested idempotency
+            //await Task.Delay(5000); // Testing idempotency
 
             var updatedGameState = await _gameService.UpdateAsync(gameEntity, moveEntity);
 

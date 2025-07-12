@@ -9,11 +9,11 @@ public class ResponseWrapper<T>
     public bool IsCreated { get; set; }
 
 
-    public ResponseWrapper(T? response)
+    public ResponseWrapper(T? response, bool isCreated)
     {
         Success = true;
         Response = response;
-        IsCreated = true;
+        IsCreated = isCreated;
     }
 
     public ResponseWrapper(string etag)
