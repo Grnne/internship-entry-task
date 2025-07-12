@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 using TicTacToe.Api.Application.Services;
 using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
-using System.Reflection;
 
 namespace TicTacToe.Api;
 // TODO readme, docker, testing, Persistence crash-safe, переменные среды, logic
-// TODO think bout: response wrapper? maybe add repos and uow, migrations,
+// TODO think bout: response wrapper? maybe add repos and uow, migrations, lazy loading
 // signalR(multiplayer and hot seat modes), middleware for logging,
 // validation\exception handling, authorization with current user service,
 // or drop all this stuff cus overhead. Added some dummies\blank stuff

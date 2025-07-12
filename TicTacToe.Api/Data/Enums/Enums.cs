@@ -17,7 +17,6 @@ public enum GameState
 
 public enum PlayerTurn
 {
-    None = 0,
-    PlayerX = 1,
-    PlayerO = 2
+    PlayerX = 0,
+    PlayerO = 1
 }

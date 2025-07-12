@@ -1,12 +1,11 @@
-﻿using System.Linq;
-using TicTacToe.Api.Application.Models.Dto;
+﻿using TicTacToe.Api.Application.Models.Dto;
 using TicTacToe.Api.Data.Entities;
 
 namespace TicTacToe.Api.Application.Mappers;
 
 public static class GameMapper
 {
-    public static GameDto ToDto(Game game)
+    public static GameDto ToGameDto(Game game)
     {
         return new GameDto
         {
@@ -15,6 +14,7 @@ public static class GameMapper
             PlayerOId = game.PlayerOId,
             BoardHeight = game.BoardHeight,
             BoardWidth = game.BoardWidth,
+            WinLength = game.WinLength,
             CurrentTurn = game.CurrentTurn,
             GameState = game.GameState,
             Cells = game.Cells.Select(c => new CellDto
@@ -26,7 +26,23 @@ public static class GameMapper
         };
     }
 
-    public static Game ToEntity(CreateGameDto dto)
+    public static GameStateDto ToGameStateDto(Game game)
+    {
+        return new GameStateDto
+        {
+            GameId = game.Id,
+            GameState = game.GameState,
+            CurrentTurn = game.CurrentTurn,
+            Cells = game.Cells.Select(c => new CellDto
+            {
+                X = c.X,
+                Y = c.Y,
+                CellState = c.CellState
+            }).ToList()
+        };
+    }
+
+    public static Game CreateGameDtoToEntity(CreateGameDto dto)
     {
         var entity = new Game
         {
@@ -42,6 +58,11 @@ public static class GameMapper
         if (dto.BoardWidth != null)
         {
             entity.BoardWidth = dto.BoardWidth.Value;
+        }
+
+        if (dto.WinLength != null)
+        {
+            entity.WinLength = dto.WinLength.Value;
         }
 
         return entity;

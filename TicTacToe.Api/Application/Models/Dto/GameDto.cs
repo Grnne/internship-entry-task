@@ -8,6 +8,7 @@ public class CreateGameDto
     public int PlayerOId { get; set; }
     public int? BoardHeight { get; set; }
     public int? BoardWidth { get; set; }
+    public int? WinLength { get; set; }
 }
 
 public class GameDto
@@ -17,6 +18,8 @@ public class GameDto
     public int PlayerOId { get; set; }
     public int BoardHeight { get; set; }
     public int BoardWidth { get; set; }
+    public int WinLength { get; set; }
+
     public PlayerTurn CurrentTurn { get; set; }
     public GameState GameState { get; set; }
 
@@ -32,8 +35,9 @@ public class CellDto
 
 public class GameStateDto
 {
+    public int GameId { get; set; }
     public GameState GameState { get; set; }
-    public PlayerTurn PlayerTurn { get; set; }
+    public PlayerTurn CurrentTurn { get; set; }
 
     public List<CellDto> Cells { get; set; } = [];
 }
