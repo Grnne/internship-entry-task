@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using TicTacToe.Api.Application.Mappers;
 using TicTacToe.Api.Application.Models;
 using TicTacToe.Api.Application.Models.Dto;
 using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
+using TicTacToe.Api.Data.Entities;
 using TicTacToe.Api.Data.Enums;
 
 namespace TicTacToe.Api.Application.Services;
@@ -74,8 +77,25 @@ public class MoveService : IMoveService
                 destinationCell.CellState = currentTurn == PlayerTurn.PlayerX ? CellState.X : CellState.O;
             }
 
-            await _context.Moves.AddAsync(moveEntity);
-            await _context.SaveChangesAsync();
+            //TODO better way
+            try
+            {
+                await _context.Moves.AddAsync(moveEntity);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                var existingMove = await _context.Moves.FirstOrDefaultAsync(m =>
+                    m.GameId == dto.GameId &&
+                    m.PlayerId == dto.PlayerId &&
+                    m.X == dto.X &&
+                    m.Y == dto.Y);
+
+                return existingMove != null ? new ResponseWrapper<GameStateDto>(CreateMoveETag(existingMove))
+                    : new ResponseWrapper<GameStateDto>(ErrorViews.DatabaseError);
+            }
+            
+            //await Task.Delay(5000); // Tested idempotency
 
             var updatedGameState = await _gameService.UpdateAsync(gameEntity, moveEntity);
 
@@ -88,5 +108,14 @@ public class MoveService : IMoveService
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    private static string CreateMoveETag(Move move)
+    {
+        var data = $"{move.GameId}:{move.PlayerId}:{move.X}:{move.Y}";
+
+        using var md5 = MD5.Create();
+        var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(data));
+        return $"\"{Convert.ToBase64String(hash)}\"";
     }
 }

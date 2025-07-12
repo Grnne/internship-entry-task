@@ -127,13 +127,13 @@ public class GameService : IGameService
 
     private static GameState CheckWinAllDirections(byte[,] boolGrid, int x, int y, int winLength)
     {
-        (int deltaX, int deltaY)[] directions = new (int, int)[]
-        {
+        (int deltaX, int deltaY)[] directions =
+        [
             (1, 0),
             (0, 1),
             (1, 1),
             (1, -1)
-        };
+        ];
 
         var width = boolGrid.GetLength(0);
         var height = boolGrid.GetLength(1);

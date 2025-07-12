@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DotNetEnv;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using TicTacToe.Api.Application.Services;
 using TicTacToe.Api.Application.Services.Interfaces;
@@ -15,6 +16,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        Env.Load();
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddControllers();

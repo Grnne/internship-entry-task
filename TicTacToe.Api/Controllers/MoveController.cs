@@ -27,6 +27,10 @@ public class MoveController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)] //TODO Etag
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(GameStateDto))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)] // с ETag в заголовке
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(GameStateDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateMoveDto request)
     {
         var result = await _service.CreateAsync(request);
@@ -45,7 +49,15 @@ public class MoveController : ControllerBase
             return BadRequest(problemDetails);
         }
 
-        // Возвращаем 201 Created с телом ответа
+        if (!result.IsCreated)
+        {
+            if (!string.IsNullOrEmpty(result.ETag))
+            {
+                Response.Headers["ETag"] = result.ETag;
+            }
+            return Ok();
+        }
+
         return StatusCode(StatusCodes.Status201Created, result.Response);
     }
 }

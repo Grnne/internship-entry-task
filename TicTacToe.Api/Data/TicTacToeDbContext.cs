@@ -27,6 +27,16 @@ public class TicTacToeDbContext : DbContext
             .HasForeignKey(m => m.GameId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Move>()
+            .HasIndex(m => new
+            {
+                m.GameId,
+                m.PlayerId,
+                m.X,
+                m.Y
+            })
+            .IsUnique();
+
         modelBuilder.Entity<Cell>()
             .HasOne(c => c.Game)
             .WithMany(g => g.Cells)

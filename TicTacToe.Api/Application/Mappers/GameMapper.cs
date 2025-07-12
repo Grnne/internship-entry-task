@@ -47,24 +47,18 @@ public static class GameMapper
         var entity = new Game
         {
             PlayerXId = dto.PlayerXId,
-            PlayerOId = dto.PlayerOId
+            PlayerOId = dto.PlayerOId,
+            BoardHeight = dto.BoardHeight ?? GetEnvOrSetDefault("BOARD_HEIGHT", 3),
+            BoardWidth = dto.BoardWidth ?? GetEnvOrSetDefault("BOARD_WIDTH", 3),
+            WinLength = dto.WinLength ?? GetEnvOrSetDefault("WIN_LENGTH", 3)
         };
 
-        if (dto.BoardHeight != null)
-        {
-            entity.BoardHeight = dto.BoardHeight.Value;
-        }
-
-        if (dto.BoardWidth != null)
-        {
-            entity.BoardWidth = dto.BoardWidth.Value;
-        }
-
-        if (dto.WinLength != null)
-        {
-            entity.WinLength = dto.WinLength.Value;
-        }
-
         return entity;
+
+        static int GetEnvOrSetDefault(string key, int defaultValue)
+        {
+            var val = Environment.GetEnvironmentVariable(key);
+            return int.TryParse(val, out var result) ? result : defaultValue;
+        }
     }
 }
