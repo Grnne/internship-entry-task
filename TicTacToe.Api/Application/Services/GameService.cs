@@ -35,7 +35,7 @@ public class GameService : IGameService
             return new ResponseWrapper<GameDto>(ErrorViews.PlayersMustBeDifferent);
         }
 
-        if (dto.BoardHeight <= 3 || dto.BoardWidth <= 3 || dto.WinLength <= 3)
+        if (dto.BoardHeight < 3 || dto.BoardWidth < 3 || dto.WinLength < 3)
         {
             return new ResponseWrapper<GameDto>(ErrorViews.InvalidBoardConfiguration);
         }
