@@ -15,6 +15,12 @@ public static class ErrorViews
         Message: "It is not the current player's turn."
     );
 
+    public static readonly Error PlayersMustBeDifferent = new(
+        StatusCode: 400,
+        ErrorCode: "PlayersMustBeDifferent",
+        Message: "Игроки X и O не могут быть одинаковыми."
+    );
+
     public static readonly Error GameNotInProgress = new(
         StatusCode: 400,
         ErrorCode: "GameNotInProgress",

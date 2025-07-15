@@ -25,6 +25,11 @@ public class GameService : IGameService
             return new ResponseWrapper<GameDto>(ErrorViews.InvalidMoveDto);
         }
 
+        if (dto.PlayerXId == dto.PlayerOId)
+        {
+            return new ResponseWrapper<GameDto>(ErrorViews.PlayersMustBeDifferent);
+        }
+
         var entity = GameMapper.CreateGameDtoToEntity(dto);
         InitCells(entity);
         await _context.AddAsync(entity);
@@ -102,7 +107,7 @@ public class GameService : IGameService
 
         await _context.SaveChangesAsync();
 
-        return new ResponseWrapper<GameStateDto>(GameMapper.ToGameStateDto(game), false);
+        return new ResponseWrapper<GameStateDto>(GameMapper.ToGameStateDto(game), true);
     }
 
     private static void InitCells(Game game)

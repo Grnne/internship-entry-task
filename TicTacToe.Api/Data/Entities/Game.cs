@@ -8,7 +8,7 @@ public class Game
     public int PlayerXId { get; set; }
     public int PlayerOId { get; set; }
     public int BoardHeight { get; set; }
-    public int BoardWidth { get; set; } 
+    public int BoardWidth { get; set; }
     public int WinLength { get; set; }
     public int FilledCellsCount { get; set; } = 0;
 

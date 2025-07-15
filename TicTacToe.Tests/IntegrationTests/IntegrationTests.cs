@@ -1,7 +1,7 @@
-﻿using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http.Json;
 using TicTacToe.Api;
 using TicTacToe.Api.Application.Models.Dto;
 using TicTacToe.Api.Data;
@@ -27,7 +27,7 @@ public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactor
 
                 services.AddDbContext<TicTacToeDbContext>(options =>
                 {
-                    options.UseNpgsql("Server=127.0.0.1;Port=5432;Database=TicTacToeDb_Test;User Id=postgres;Password=bpbjywbr;");
+                    options.UseNpgsql("Server=localhost;Port=5432;Database=TicTacToeDb_Test;User Id=postgres;Password=postgres;");
                 });
 
                 var sp = services.BuildServiceProvider();
@@ -35,7 +35,7 @@ public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactor
                 var db = scope.ServiceProvider.GetRequiredService<TicTacToeDbContext>();
 
                 db.Database.EnsureDeleted();
-                db.Database.EnsureCreated();
+                db.Database.Migrate();
             });
         });
     }

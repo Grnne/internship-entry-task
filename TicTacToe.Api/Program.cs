@@ -6,12 +6,9 @@ using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
 
 namespace TicTacToe.Api;
-// TODO readme, docker, testing, validation of wrong users and etc 
-// TODO think bout: maybe add repos and uow, migrations, lazy loading
-// signalR(multiplayer and hot seat modes), middleware for logging,
-// validation\exception handling, authorization with current user service,
-// or drop all this stuff cus overhead. Added some dummies\blank stuff
-// signalR exp maybe useful for study(anyway, need to do signalR implementation)
+// TODO validating, maybe put error handling and validating into middleware, also logging
+// TODO think bout: maybe add repos and uow, signalR+authorization(multiplayer and hot seat modes)
+
 public class Program
 {
     public static void Main(string[] args)
@@ -35,7 +32,6 @@ public class Program
         });
 
         builder.Services.AddHealthChecks();
-
         builder.Services.AddScoped<IGameService, GameService>();
         builder.Services.AddScoped<IMoveService, MoveService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
@@ -46,22 +42,43 @@ public class Program
         {
             var db = scope.ServiceProvider.GetRequiredService<TicTacToeDbContext>();
 
-            db.Database.EnsureDeleted();
-            db.Database.EnsureCreated();
+            const int maxRetries = 5;
+            const int delay = 5000;
+
+            for (var retry = 0; retry < maxRetries; retry++)
+            {
+                try
+                {
+                    db.Database.Migrate();
+
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    if (retry == maxRetries - 1)
+                    {
+                        throw;
+                    }
+
+                    Console.WriteLine($"Migration failed. Attempt {retry + 1} of {maxRetries}. Retrying in 5 seconds...");
+                    Task.Delay(delay);
+                }
+            }
         }
 
-        if (app.Environment.IsDevelopment())
+        app.UseSwagger();
+        app.UseSwaggerUI();
+
+        // Temporary redirect
+        app.MapGet("/", context =>
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+            context.Response.Redirect("/swagger");
+            return Task.CompletedTask;
+        });
 
         app.UseHttpsRedirection();
 
-        app.UseAuthorization();
-
         app.MapControllers();
-
         app.MapHealthChecks("/health");
 
         app.Run();

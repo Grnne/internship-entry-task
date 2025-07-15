@@ -1,0 +1,30 @@
+﻿services:
+  tictactoe.api:
+    depends_on:
+      - tictactoe.database
+    image: ${DOCKER_REGISTRY-}tictactoeapi
+    container_name: TicTacToe.Api
+    build:
+      context: TicTacToe.Api
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=tictactoe.database;Port=5432;Database=TicTacToeDb;User Id=postgres;Password=postgres;
+      - BOARD_WIDTH=3
+      - BOARD_HEIGHT=3
+      - WIN_LENGTH=3
+    ports:
+      - 8080:8080
+      - 8081:8081
+
+  tictactoe.database:
+    image: postgres:latest
+    container_name: TicTacToe.Database
+    environment:
+      - POSTGRES_DB=TicTacToeDb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./.containers/products-db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432

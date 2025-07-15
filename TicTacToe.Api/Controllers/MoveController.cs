@@ -58,6 +58,6 @@ public class MoveController : ControllerBase
             return Ok();
         }
 
-        return StatusCode(StatusCodes.Status201Created, result.Response);
+        return StatusCode(StatusCodes.Status201Created, result);
     }
 }

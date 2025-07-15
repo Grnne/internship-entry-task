@@ -95,7 +95,7 @@ public class MoveService : IMoveService
                 return existingMove != null ? new ResponseWrapper<GameStateDto>(CreateMoveETag(existingMove))
                     : new ResponseWrapper<GameStateDto>(ErrorViews.DatabaseError);
             }
-            
+
             //await Task.Delay(5000); // Testing idempotency
 
             var updatedGameState = await _gameService.UpdateAsync(gameEntity, moveEntity);
