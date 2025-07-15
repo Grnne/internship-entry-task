@@ -19,3 +19,4 @@ bld/
 *.vspscc
 *.vssscc
 /TicTacToe.Tests/TestResults
+/.containers/products-db
