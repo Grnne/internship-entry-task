@@ -24,6 +24,13 @@ public class Program
 
         builder.Services.AddSwaggerGen(options =>
         {
+            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            {
+                Title = "TicTacToe API",
+                Version = "v1",
+                Description = "REST API для игры в крестики-нолики"
+            });
+
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             options.IncludeXmlComments(xmlPath);
@@ -41,14 +48,14 @@ public class Program
             var db = scope.ServiceProvider.GetRequiredService<TicTacToeDbContext>();
 
             const int maxRetries = 5;
-            const int delayMs = 5000;
+            const int delay = 5000;
 
-            int retry = 0;
+            var retry = 0;
             while (true)
             {
                 try
                 {
-                    db.Database.Migrate();
+                    await db.Database.MigrateAsync();
                     Console.WriteLine("Database migration successful.");
                     break;
                 }
@@ -61,14 +68,17 @@ public class Program
                         throw;
                     }
 
-                    Console.WriteLine($"Migration failed. Attempt {retry} of {maxRetries}. Retrying in {delayMs / 1000} seconds...");
-                    await Task.Delay(delayMs);
+                    Console.WriteLine($"Migration failed. Attempt {retry} of {maxRetries}. Retrying in {delay / 1000} seconds...");
+                    await Task.Delay(delay);
                 }
             }
         }
 
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "TicTacToe API V1");
+        });
 
         // Temporary redirect "/" → "/swagger"
         app.MapGet("/", context =>
