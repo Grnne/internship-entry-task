@@ -1,7 +1,8 @@
 ﻿services:
   tictactoe.api:
     depends_on:
-      - tictactoe.database
+      tictactoe.database:
+        condition: service_healthy
     image: ${DOCKER_REGISTRY-}tictactoeapi
     container_name: TicTacToe.Api
     build:
@@ -28,3 +29,8 @@
       - ./.containers/products-db:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

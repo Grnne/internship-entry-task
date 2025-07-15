@@ -6,12 +6,10 @@ using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
 
 namespace TicTacToe.Api;
-// TODO validating, maybe put error handling and validating into middleware, also logging
-// TODO think bout: maybe add repos and uow, signalR+authorization(multiplayer and hot seat modes)
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         Env.Load();
         var builder = WebApplication.CreateBuilder(args);
@@ -43,25 +41,28 @@ public class Program
             var db = scope.ServiceProvider.GetRequiredService<TicTacToeDbContext>();
 
             const int maxRetries = 5;
-            const int delay = 5000;
+            const int delayMs = 5000;
 
-            for (var retry = 0; retry < maxRetries; retry++)
+            int retry = 0;
+            while (true)
             {
                 try
                 {
                     db.Database.Migrate();
-
+                    Console.WriteLine("Database migration successful.");
                     break;
                 }
                 catch (Exception ex)
                 {
-                    if (retry == maxRetries - 1)
+                    retry++;
+                    if (retry >= maxRetries)
                     {
+                        Console.WriteLine($"Migration failed after {retry} attempts. Exception: {ex}");
                         throw;
                     }
 
-                    Console.WriteLine($"Migration failed. Attempt {retry + 1} of {maxRetries}. Retrying in 5 seconds...");
-                    Task.Delay(delay);
+                    Console.WriteLine($"Migration failed. Attempt {retry} of {maxRetries}. Retrying in {delayMs / 1000} seconds...");
+                    await Task.Delay(delayMs);
                 }
             }
         }
@@ -69,7 +70,7 @@ public class Program
         app.UseSwagger();
         app.UseSwaggerUI();
 
-        // Temporary redirect
+        // Temporary redirect "/" → "/swagger"
         app.MapGet("/", context =>
         {
             context.Response.Redirect("/swagger");
@@ -81,6 +82,6 @@ public class Program
         app.MapControllers();
         app.MapHealthChecks("/health");
 
-        app.Run();
+        await app.RunAsync();
     }
 }
