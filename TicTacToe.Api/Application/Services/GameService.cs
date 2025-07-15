@@ -25,9 +25,19 @@ public class GameService : IGameService
             return new ResponseWrapper<GameDto>(ErrorViews.InvalidMoveDto);
         }
 
+        if (dto.PlayerXId <= 0 || dto.PlayerOId <= 0)
+        {
+            return new ResponseWrapper<GameDto>(ErrorViews.InvalidPlayerId);
+        }
+
         if (dto.PlayerXId == dto.PlayerOId)
         {
             return new ResponseWrapper<GameDto>(ErrorViews.PlayersMustBeDifferent);
+        }
+
+        if (dto.BoardHeight <= 3 || dto.BoardWidth <= 3 || dto.WinLength <= 3)
+        {
+            return new ResponseWrapper<GameDto>(ErrorViews.InvalidBoardConfiguration);
         }
 
         var entity = GameMapper.CreateGameDtoToEntity(dto);

@@ -52,8 +52,19 @@ public static class ErrorViews
         Message: "The provided move data is invalid or incomplete. Please check the input and try again."
     );
 
-    // Other
+    public static readonly Error InvalidPlayerId = new(
+        StatusCode: 400,
+        ErrorCode: "InvalidPlayerId",
+        Message: "Player IDs must be positive integers."
+    );
 
+    public static readonly Error InvalidBoardConfiguration = new(
+        StatusCode: 400,
+        ErrorCode: "InvalidBoardConfiguration",
+        Message: "Board height, width and win length must be at least 3."
+    );
+
+    //Other
     public static readonly Error DatabaseError = new(
         StatusCode: 500,
         ErrorCode: "DatabaseError",

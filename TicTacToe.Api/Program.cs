@@ -6,7 +6,7 @@ using TicTacToe.Api.Application.Services.Interfaces;
 using TicTacToe.Api.Data;
 
 namespace TicTacToe.Api;
-
+// TODO signalR, Auth(JWT oauth2)  error\logging middleware
 public class Program
 {
     public static async Task Main(string[] args)
