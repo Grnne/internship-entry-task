@@ -18,7 +18,7 @@ public class GameController : ControllerBase
     /// <summary>
     /// Создает новую игру.
     /// </summary>
-    /// <param name="request">Данные для создания игры.</param>
+    /// <param name="request">Данные для создания игры. Размеры доски и длина линии победы - необязательные значения.</param>
     /// <returns>Созданная игра с деталями.</returns>
     /// <response code="201">Игра успешно создана.</response>
     /// <response code="400">Некорректные данные запроса.</response>
