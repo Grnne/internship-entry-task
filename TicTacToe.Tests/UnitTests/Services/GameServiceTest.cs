@@ -35,8 +35,9 @@ public class GameServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateAsync_CreatesGame_WhenValidDto()
+    public async Task CreateAsync_ValidDto_CreatesGame()
     {
+        // Arrange
         var (context, service) = await DbInit();
         var dto = new CreateGameDto
         {
@@ -47,8 +48,10 @@ public class GameServiceTests : IDisposable
             WinLength = 3
         };
 
+        // Act
         var result = await service.CreateAsync(dto);
 
+        // Assert
         Assert.True(result.Success);
         Assert.NotNull(result.Response);
         Assert.Equal(dto.PlayerXId, result.Response.PlayerXId);
@@ -60,10 +63,10 @@ public class GameServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetByIdAsync_ReturnsGame_WhenGameExists()
+    public async Task GetByIdAsync_GameExists_ReturnsGame()
     {
+        // Arrange
         var (context, service) = await DbInit();
-
         var game = new Game
         {
             PlayerXId = 1,
@@ -74,12 +77,13 @@ public class GameServiceTests : IDisposable
             Cells = new List<Cell>(),
             Moves = new List<Move>()
         };
-
         context.Games.Add(game);
         await context.SaveChangesAsync();
 
+        // Act
         var result = await service.GetByIdAsync(game.Id);
 
+        // Assert
         Assert.True(result.Success);
         Assert.NotNull(result.Response);
         Assert.Equal(game.Id, result.Response.Id);
@@ -89,10 +93,10 @@ public class GameServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteAsync_ReturnTrue_WhenGameExists()
+    public async Task DeleteAsync_GameExists_ReturnsTrue()
     {
+        // Arrange
         var (context, service) = await DbInit();
-
         var game = new Game
         {
             PlayerXId = 1,
@@ -100,15 +104,16 @@ public class GameServiceTests : IDisposable
             BoardHeight = 3,
             BoardWidth = 3,
             WinLength = 3,
-            Cells = new List<Cell>(),
-            Moves = new List<Move>()
+            Cells = [],
+            Moves = []
         };
-
         context.Games.Add(game);
         await context.SaveChangesAsync();
 
+        // Act
         var result = await service.DeleteAsync(game.Id);
 
+        // Assert
         Assert.True(result.Success);
         Assert.True(result.Response);
 
@@ -116,12 +121,15 @@ public class GameServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteAsync_ReturnError_WhenGameDoesNotExist()
+    public async Task DeleteAsync_GameDoesNotExist_ReturnsError()
     {
+        // Arrange
         var (context, service) = await DbInit();
 
+        // Act
         var result = await service.DeleteAsync(-1);
 
+        // Assert
         Assert.False(result.Success);
         Assert.NotNull(result.Error);
 
@@ -129,10 +137,10 @@ public class GameServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task UpdateAsync_UpdatesGameState()
+    public async Task UpdateAsync_ValidMove_UpdatesGameState()
     {
+        // Arrange
         var (context, service) = await DbInit();
-
         var game = new Game
         {
             PlayerXId = 1,
@@ -143,9 +151,8 @@ public class GameServiceTests : IDisposable
             CurrentTurn = PlayerTurn.PlayerX,
             GameState = GameState.InProgress,
             FilledCellsCount = 0,
-            Cells = new List<Cell>()
+            Cells = []
         };
-
         for (var y = 0; y < game.BoardHeight; y++)
         {
             for (var x = 0; x < game.BoardWidth; x++)
@@ -159,7 +166,6 @@ public class GameServiceTests : IDisposable
                 });
             }
         }
-
         context.Games.Add(game);
         await context.SaveChangesAsync();
 
@@ -172,8 +178,10 @@ public class GameServiceTests : IDisposable
             Y = 0
         };
 
+        // Act
         var result = await service.UpdateAsync(game, move);
 
+        // Assert
         Assert.True(result.Success);
         Assert.NotNull(result.Response);
         Assert.Equal(GameState.InProgress, result.Response.GameState);

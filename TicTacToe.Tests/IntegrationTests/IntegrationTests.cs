@@ -55,8 +55,9 @@ public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
-    public async Task Post_CreateGame_ReturnsCreatedGame()
+    public async Task CreateGameAsync_ValidRequest_ReturnsCreatedGame()
     {
+        // Arrange
         var client = _factory.CreateClient();
 
         var createGameDto = new CreateGameDto
@@ -68,8 +69,10 @@ public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactor
             WinLength = 3
         };
 
+        // Act
         var response = await client.PostAsJsonAsync("/api/game", createGameDto);
 
+        // Assert
         response.EnsureSuccessStatusCode();
         Assert.Equal(System.Net.HttpStatusCode.Created, response.StatusCode);
 
@@ -81,8 +84,9 @@ public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
-    public async Task GetById_ReturnsGame_WhenGameExists()
+    public async Task GetGameByIdAsync_GameExists_ReturnsGameDto()
     {
+        // Arrange
         var client = _factory.CreateClient();
 
         var createDto = new CreateGameDto
@@ -99,9 +103,11 @@ public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactor
         var createdGame = await createResponse.Content.ReadFromJsonAsync<GameDto>();
         Assert.NotNull(createdGame);
 
+        // Act
         var getResponse = await client.GetAsync($"/api/game/{createdGame.Id}");
-        getResponse.EnsureSuccessStatusCode();
 
+        // Assert
+        getResponse.EnsureSuccessStatusCode();
         var gameDto = await getResponse.Content.ReadFromJsonAsync<GameDto>();
         Assert.NotNull(gameDto);
         Assert.Equal(createdGame.Id, gameDto.Id);
@@ -110,8 +116,9 @@ public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactor
     }
 
     [Fact]
-    public async Task Delete_ReturnsNoContent_WhenGameExists()
+    public async Task DeleteGameAsync_GameExists_ReturnsNoContentAndRemovesGame()
     {
+        // Arrange
         var client = _factory.CreateClient();
 
         var createDto = new CreateGameDto
@@ -128,26 +135,42 @@ public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactor
         var createdGame = await createResponse.Content.ReadFromJsonAsync<GameDto>();
         Assert.NotNull(createdGame);
 
+        // Act
         var deleteResponse = await client.DeleteAsync($"/api/game/{createdGame.Id}");
+
+        // Assert
         Assert.Equal(System.Net.HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
+        // Act
         var getResponse = await client.GetAsync($"/api/game/{createdGame.Id}");
+
+        // Assert
         Assert.Equal(System.Net.HttpStatusCode.NotFound, getResponse.StatusCode);
     }
 
     [Fact]
-    public async Task GetById_ReturnsNotFound_WhenGameDoesNotExist()
+    public async Task GetGameByIdAsync_GameDoesNotExist_ReturnsNotFound()
     {
+        // Arrange
         var client = _factory.CreateClient();
+
+        // Act
         var response = await client.GetAsync("/api/game/999999");
+
+        // Assert
         Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
-    public async Task Delete_ReturnsNotFound_WhenGameDoesNotExist()
+    public async Task DeleteGameAsync_GameDoesNotExist_ReturnsNotFound()
     {
+        // Arrange
         var client = _factory.CreateClient();
+
+        // Act
         var response = await client.DeleteAsync("/api/game/999999");
+
+        // Assert
         Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
     }
 }
